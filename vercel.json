@@ -1,0 +1,55 @@
+# Bus Tracker SG
+
+Personal bus arrival tracker for stops B20019 (Home) and B18101 (Office).
+Buses tracked: 97, 97E, 197, 963.
+
+## Deploy to Vercel
+
+### One-time setup
+
+1. Install Node.js from https://nodejs.org (LTS version)
+2. Install Vercel CLI:
+   ```
+   npm install -g vercel
+   ```
+3. Create a free account at https://vercel.com
+
+### Deploy
+
+Open a terminal in this folder and run:
+
+```
+vercel
+```
+
+- When asked "Set up and deploy?" → Y
+- Project name → press Enter (accept default)
+- Which directory → press Enter (current folder)
+- Override settings? → N
+
+Vercel will give you a live URL like:
+  https://bus-app-xxx.vercel.app
+
+Bookmark that on your phone — done.
+
+### Redeploy after any changes
+
+```
+vercel --prod
+```
+
+## File structure
+
+```
+bus-app/
+├── index.html     — frontend UI
+├── api/
+│   └── bus.js     — serverless proxy to LTA DataMall API
+└── vercel.json    — routing config
+```
+
+## Notes
+
+- Auto-refreshes every 30 seconds
+- Load indicator dots: 🟢 Seats Available / 🟡 Standing / 🔴 Limited Standing
+- LTA API key is hardcoded in api/bus.js
