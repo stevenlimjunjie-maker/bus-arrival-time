@@ -2,7 +2,8 @@ export default async function handler(req, res) {
   const { stop } = req.query;
   if (!stop) return res.status(400).json({ error: 'Missing stop parameter' });
   const LTA_KEY = '10Z76EBAQnufAL3+265xvw==';
-  const url = `https://datamall2.mytransport.sg/ltaodataservice/v3/BusArrival?BusStopCode=${stop}`;
+  const stopCode = stop.replace(/^B/i, '');
+  const url = `https://datamall2.mytransport.sg/ltaodataservice/v3/BusArrival?BusStopCode=${stopCode}`;
   try {
     const response = await fetch(url, {
       headers: { 'AccountKey': LTA_KEY, 'Accept': 'application/json' }
