@@ -436,6 +436,29 @@
   let countdownSecs  = AUTO_REFRESH_SEC;
   let countdownTimer = null;
 
+  // 97E only runs Mon–Fri: 7:30–8:30 AM (to city) and 6:00–7:00 PM (to Jurong East)
+  function is97EActive() {
+    const now = new Date();
+    const sgtOffset = 8 * 60; // SGT = UTC+8
+    const sgtMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + sgtOffset) % (24 * 60);
+    const sgtDay = Math.floor((now.getUTCHours() * 60 + now.getUTCMinutes() + sgtOffset) / (24 * 60));
+    // Day of week in SGT (0=Sun,6=Sat)
+    const utcDay = now.getUTCDay();
+    const sgtDayOfWeek = (utcDay + (now.getUTCHours() + 8 >= 24 ? 1 : 0)) % 7;
+    const isWeekday = sgtDayOfWeek >= 1 && sgtDayOfWeek <= 5;
+    if (!isWeekday) return false;
+    const morningStart = 7 * 60 + 30;  // 07:30
+    const morningEnd   = 8 * 60 + 30;  // 08:30
+    const eveningStart = 18 * 60;       // 18:00
+    const eveningEnd   = 19 * 60;       // 19:00
+    return (sgtMinutes >= morningStart && sgtMinutes <= morningEnd) ||
+           (sgtMinutes >= eveningStart && sgtMinutes <= eveningEnd);
+  }
+
+  function activeBuses() {
+    return is97EActive() ? BUSES : BUSES.filter(b => b !== '97E');
+  }
+
   function arrivalLabel(isoStr) {
     if (!isoStr || isoStr === '0001-01-01T00:00:00+08:00') return null;
     const diff = Math.round((new Date(isoStr) - Date.now()) / 60000);
@@ -451,7 +474,7 @@
 
   function renderSkeleton(stopCode) {
     const el = document.getElementById('list-' + stopCode);
-    el.innerHTML = BUSES.map(() => `
+    el.innerHTML = activeBuses().map(() => `
       <div class="bus-row">
         <div class="bus-number"><div class="skeleton" style="width:40px;height:22px"></div></div>
         <div class="bus-type"><div class="skeleton" style="width:28px;height:18px;border-radius:4px"></div></div>
@@ -466,7 +489,7 @@
   function renderStop(stopCode, services) {
     const el = document.getElementById('list-' + stopCode);
     if (!el) return;
-    el.innerHTML = BUSES.map(busNo => {
+    el.innerHTML = activeBuses().map(busNo => {
       const svc = services.find(s => s.ServiceNo === busNo);
       let chips = '';
       let typeHtml = '<div class="type-badge type-NA">–</div>';
@@ -520,7 +543,7 @@
       err.classList.add('visible');
       STOPS.forEach(s => {
         const el = document.getElementById('list-' + s);
-        if (el) el.innerHTML = BUSES.map(b =>
+        if (el) el.innerHTML = activeBuses().map(b =>
           `<div class="bus-row"><div class="bus-number">${b}</div><div class="bus-type"></div><div class="arrivals"><span class="arrival-time empty">Error</span></div></div>`
         ).join('');
       });
