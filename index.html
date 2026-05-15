@@ -137,6 +137,12 @@
     font-size: 10px; color: var(--muted); letter-spacing: 1px;
   }
 
+  .stop-dist {
+    font-family: var(--mono);
+    font-size: 10px; color: var(--accent); letter-spacing: 0.5px;
+    margin-top: 1px;
+  }
+
   /* ── COLUMN HEADERS ── */
   .col-headers {
     display: flex;
@@ -540,31 +546,89 @@
       (countdownSecs / AUTO_REFRESH_SEC * 100) + '%';
   }
 
-  // ── Panel ordering based on time (SGT = UTC+8) ──────────
+  // ── Bus stop coordinates (fetched once from LTA on load) ─
+  const STOP_CODES = { 'B20019': '20019', 'B18101': '18101', 'B18131': '18131' };
+  const PANEL_IDS  = { 'B20019': 'panel-home', 'B18101': 'panel-jj', 'B18131': 'panel-san' };
+
+  // Haversine distance in metres between two lat/lng points
+  function haversine(lat1, lon1, lat2, lon2) {
+    const R = 6371000;
+    const toRad = d => d * Math.PI / 180;
+    const dLat = toRad(lat2 - lat1), dLon = toRad(lon2 - lon1);
+    const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2)**2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  async function fetchStopCoord(busStopKey) {
+    const code = STOP_CODES[busStopKey];
+    const res = await fetch(`/api/stops?code=${code}`);
+    if (!res.ok) return null;
+    const data = await res.json();
+    return { lat: data.Latitude, lng: data.Longitude };
+  }
+
+  function orderPanelsByDistance(userLat, userLng, stopCoords) {
+    const grid = document.getElementById('panelsGrid');
+    // Build array of [stopKey, distance]
+    const sorted = Object.keys(stopCoords)
+      .map(key => ({
+        key,
+        dist: haversine(userLat, userLng, stopCoords[key].lat, stopCoords[key].lng)
+      }))
+      .sort((a, b) => a.dist - b.dist);
+
+    // Re-append panels in distance order
+    sorted.forEach(({ key, dist }) => {
+      const panel = document.getElementById(PANEL_IDS[key]);
+      if (panel) {
+        // Update subtitle with distance
+        let distEl = panel.querySelector('.stop-dist');
+        if (!distEl) {
+          distEl = document.createElement('div');
+          distEl.className = 'stop-dist';
+          panel.querySelector('.panel-header > div').appendChild(distEl);
+        }
+        const metres = Math.round(dist);
+        distEl.textContent = metres < 1000 ? `${metres} m away` : `${(dist/1000).toFixed(1)} km away`;
+        grid.appendChild(panel);
+      }
+    });
+  }
+
+  // ── Time-based fallback (SGT = UTC+8) ────────────────────
   // Before 14:00 → Home, JJ Office, San Office
   // From  14:00 → JJ Office, San Office, Home
-  function orderPanels() {
-    const now = new Date();
-    const sgtHour = (now.getUTCHours() + 8) % 24;
+  function orderPanelsByTime() {
+    const sgtHour = (new Date().getUTCHours() + 8) % 24;
     const grid = document.getElementById('panelsGrid');
     const home = document.getElementById('panel-home');
     const jj   = document.getElementById('panel-jj');
     const san  = document.getElementById('panel-san');
-
     if (sgtHour < 14) {
-      // Before 2pm: Home, JJ, San
-      grid.appendChild(home);
-      grid.appendChild(jj);
-      grid.appendChild(san);
+      grid.appendChild(home); grid.appendChild(jj); grid.appendChild(san);
     } else {
-      // From 2pm: JJ, San, Home
-      grid.appendChild(jj);
-      grid.appendChild(san);
-      grid.appendChild(home);
+      grid.appendChild(jj); grid.appendChild(san); grid.appendChild(home);
     }
   }
 
-  orderPanels();
+  async function initPanelOrder() {
+    if (!navigator.geolocation) { orderPanelsByTime(); return; }
+
+    // Fetch all stop coords in parallel
+    const keys = Object.keys(STOP_CODES);
+    const coords = await Promise.all(keys.map(fetchStopCoord));
+    const stopCoords = {};
+    keys.forEach((k, i) => { if (coords[i]) stopCoords[k] = coords[i]; });
+
+    if (Object.keys(stopCoords).length < 3) { orderPanelsByTime(); return; }
+
+    navigator.geolocation.getCurrentPosition(
+      pos => orderPanelsByDistance(pos.coords.latitude, pos.coords.longitude, stopCoords),
+      ()  => orderPanelsByTime() // user denied — fall back to time-based
+    );
+  }
+
+  initPanelOrder();
   fetchAll();
 </script>
 </body>
