@@ -17,28 +17,36 @@
 
 <style>
   :root {
-    --bg:      #f0f4f8;
-    --panel:   #ffffff;
-    --border:  #dde3ea;
-    --accent:  #0077cc;
-    --accent2: #e05a00;
-    --green:   #1a9e45;
-    --yellow:  #b87200;
-    --red:     #d62828;
-    --text:    #1a2433;
-    --muted:   #7a8fa6;
-    --mono:    'Share Tech Mono', monospace;
-    --head:    'Barlow Condensed', sans-serif;
+    --bg:       #f0f4f8;
+    --panel:    #ffffff;
+    --border:   #dde3ea;
+    --accent:   #0077cc;
+    --accent2:  #e05a00;
+    --accent3:  #1a8c3a;
+    --green:    #1a9e45;
+    --yellow:   #b87200;
+    --red:      #d62828;
+    --text:     #1a2433;
+    --muted:    #7a8fa6;
+    --mono:     'Share Tech Mono', monospace;
+    --head:     'Barlow Condensed', sans-serif;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
+  html, body {
+    height: 100%;
     background: var(--bg);
     color: var(--text);
     font-family: var(--head);
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
     min-height: 100vh;
-    padding: 10px 10px 6px;
+    padding: 12px 12px 8px;
+    gap: 10px;
   }
 
   /* ── HEADER ── */
@@ -46,43 +54,50 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin-bottom: 8px;
-    padding: 0 2px;
   }
 
   .header-left h1 {
-    font-size: 22px;
+    font-size: 26px;
     font-weight: 900;
     letter-spacing: -0.5px;
     line-height: 1;
-    color: var(--text);
   }
 
   .header-left h1 span { color: var(--accent); }
 
   .timestamp {
     font-family: var(--mono);
-    font-size: 9px;
+    font-size: 10px;
     color: var(--muted);
     margin-top: 2px;
-    letter-spacing: 0.5px;
   }
 
   .refresh-btn {
     font-family: var(--head);
-    font-size: 13px; font-weight: 700;
+    font-size: 16px;
+    font-weight: 700;
     letter-spacing: 1px;
-    color: #fff; background: var(--accent);
-    border: none; border-radius: 8px;
-    padding: 8px 16px; cursor: pointer;
+    color: #fff;
+    background: var(--accent);
+    border: none;
+    border-radius: 10px;
+    padding: 10px 20px;
+    cursor: pointer;
     transition: all 0.2s;
-    position: relative; overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0,119,204,0.3);
+    box-shadow: 0 2px 8px rgba(0,119,204,0.3);
     flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
   }
 
-  .refresh-btn:active { transform: scale(0.96); }
-  .refresh-btn.loading { background: var(--muted); pointer-events: none; box-shadow: none; }
+  .refresh-btn:active { transform: scale(0.95); }
+
+  .refresh-btn.loading {
+    background: var(--muted);
+    pointer-events: none;
+    box-shadow: none;
+  }
+
   .refresh-btn.loading::after {
     content: '';
     position: absolute; left: 0; top: 0;
@@ -99,120 +114,193 @@
 
   /* ── COUNTDOWN BAR ── */
   .countdown-bar {
-    height: 2px; background: var(--border);
-    border-radius: 1px; margin-bottom: 8px;
+    height: 3px;
+    background: var(--border);
+    border-radius: 2px;
     overflow: hidden;
+    flex-shrink: 0;
   }
 
   .countdown-fill {
-    height: 100%; background: var(--accent);
-    width: 100%; transition: width 1s linear; opacity: 0.5;
+    height: 100%;
+    background: var(--accent);
+    width: 100%;
+    transition: width 1s linear;
+    opacity: 0.5;
   }
 
-  /* ── PANELS GRID — vertical stack ── */
-  .panels {
+  /* ── ERROR ── */
+  .error-msg {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--red);
+    text-align: center;
+    padding: 7px 12px;
+    background: #ffeaea;
+    border: 1px solid #ffcccc;
+    border-radius: 8px;
+    display: none;
+    flex-shrink: 0;
+  }
+
+  .error-msg.visible { display: block; }
+
+  /* ── TAB BAR ── */
+  .tab-bar {
     display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin-bottom: 6px;
-  }
-
-  /* ── PANEL ── */
-  .panel {
     background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    overflow: hidden;
+    border-radius: 12px;
+    padding: 4px;
+    gap: 3px;
+    flex-shrink: 0;
     box-shadow: 0 1px 6px rgba(0,0,0,0.06);
-    display: flex;
-    flex-direction: column;
   }
 
-  /* Coloured top accent bar */
-  .panel-home   { border-top: 3px solid var(--accent); }
-  .panel-office { border-top: 3px solid var(--accent2); }
-  .panel-san    { border-top: 3px solid #1a8c3a; }
+  .tab-btn {
+    flex: 1;
+    border: none;
+    background: transparent;
+    border-radius: 9px;
+    padding: 10px 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+  }
 
-  .panel-header {
-    padding: 6px 8px 5px;
+  .tab-btn:active { transform: scale(0.96); }
+
+  .tab-icon { font-size: 22px; line-height: 1; }
+
+  .tab-name {
+    font-family: var(--head);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
+  .tab-dist {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--muted);
+  }
+
+  /* Active tab states */
+  .tab-btn.active-home   { background: #e8f4ff; }
+  .tab-btn.active-office { background: #fff3eb; }
+  .tab-btn.active-san    { background: #edfbf1; }
+
+  .tab-btn.active-home   .tab-name { color: var(--accent); }
+  .tab-btn.active-office .tab-name { color: var(--accent2); }
+  .tab-btn.active-san    .tab-name { color: var(--accent3); }
+
+  .tab-btn.active-home   .tab-dist { color: var(--accent); }
+  .tab-btn.active-office .tab-dist { color: var(--accent2); }
+  .tab-btn.active-san    .tab-dist { color: var(--accent3); }
+
+  /* ── TAB CONTENT ── */
+  .tab-content {
+    flex: 1;
+    display: none;
+    flex-direction: column;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+  }
+
+  .tab-content.active { display: flex; }
+
+  .content-header {
+    padding: 12px 16px 10px;
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
-    gap: 6px;
-    background: #fafbfc;
+    gap: 10px;
   }
 
-  .direction-icon {
-    font-size: 14px; flex-shrink: 0; line-height: 1;
+  .content-icon { font-size: 28px; line-height: 1; }
+
+  .content-title {
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
   }
 
-  .panel-meta { min-width: 0; }
+  .content-home   { border-top: 4px solid var(--accent); }
+  .content-office { border-top: 4px solid var(--accent2); }
+  .content-san    { border-top: 4px solid var(--accent3); }
 
-  .panel-title {
-    font-size: 11px; font-weight: 700;
-    letter-spacing: 1px; text-transform: uppercase;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
+  .content-home   .content-header { background: #f0f8ff; }
+  .content-office .content-header { background: #fff8f3; }
+  .content-san    .content-header { background: #f2fbf4; }
 
-  .panel-home   .panel-title { color: var(--accent); }
-  .panel-office .panel-title { color: var(--accent2); }
-  .panel-san    .panel-title { color: #1a8c3a; }
+  .content-home   .content-title { color: var(--accent); }
+  .content-office .content-title { color: var(--accent2); }
+  .content-san    .content-title { color: var(--accent3); }
 
-  .stop-code {
+  .content-sub {
     font-family: var(--mono);
-    font-size: 8px; color: var(--muted); letter-spacing: 0.5px;
-  }
-
-  .stop-dist {
-    font-family: var(--mono);
-    font-size: 8px; color: var(--accent);
-    letter-spacing: 0.3px;
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 2px;
   }
 
   /* ── BUS LIST ── */
-  .bus-list { padding: 3px 0; flex: 1; }
+  .bus-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 6px 0;
+  }
 
   .bus-row {
     display: flex;
-    align-items: flex-start;
-    padding: 5px 7px;
+    align-items: center;
+    padding: 10px 16px;
     border-bottom: 1px solid #f0f3f7;
-    gap: 6px;
+    gap: 12px;
   }
 
   .bus-row:last-child { border-bottom: none; }
 
-  /* Bus number — left column */
   .bus-number {
-    font-size: 20px; font-weight: 900;
-    width: 40px; flex-shrink: 0;
+    font-size: 26px;
+    font-weight: 900;
+    width: 52px;
+    flex-shrink: 0;
     letter-spacing: -0.5px;
     color: var(--text);
-    padding-top: 2px;
     line-height: 1;
   }
 
-  /* Arrival slots — right column, 3 chips always in a row */
+  /* 3 chips always in a row */
   .arrivals {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 5px;
+    gap: 6px;
     flex: 1;
   }
 
-  /* Each chip: time on top, then load+type row below */
   .arrival-chip {
     display: flex;
     flex-direction: column;
     align-items: center;
     background: #f3f6fa;
-    border-radius: 6px;
-    padding: 5px 4px 4px;
+    border-radius: 8px;
+    padding: 7px 5px 5px;
   }
 
   .arrival-time {
     font-family: var(--mono);
-    font-size: 15px;
+    font-size: 17px;
     font-weight: 700;
     line-height: 1;
     color: var(--green);
@@ -220,23 +308,24 @@
 
   .arrival-time.soon  { color: var(--yellow); }
   .arrival-time.now   { color: var(--accent); }
-  .arrival-time.empty { color: var(--muted); font-size: 11px; font-weight: 400; }
+  .arrival-time.empty { color: var(--muted); font-size: 14px; font-weight: 400; }
 
-  /* Row below time: load badge + type badge side by side */
   .chip-meta {
     display: flex;
-    gap: 2px;
-    margin-top: 3px;
+    gap: 3px;
+    margin-top: 5px;
     align-items: center;
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .load-badge {
-    font-size: 8px;
+    font-size: 9px;
     font-family: var(--mono);
     font-weight: 800;
-    padding: 1px 3px;
-    border-radius: 3px;
-    border-left: 2px solid transparent;
+    padding: 2px 4px;
+    border-radius: 4px;
+    border-left: 3px solid transparent;
     white-space: nowrap;
   }
 
@@ -246,18 +335,18 @@
   .load-NA  { background: #e8ecf0; color: var(--muted); border-left-color: #ccc; }
 
   .type-badge {
-    font-size: 8px;
+    font-size: 9px;
     font-family: var(--mono);
     font-weight: 700;
-    padding: 1px 3px;
-    border-radius: 3px;
+    padding: 2px 4px;
+    border-radius: 4px;
     white-space: nowrap;
   }
 
-  .type-SD  { background: #e0edff; color: #0055aa; }
-  .type-DD  { background: #ffe8cc; color: #a04000; }
-  .type-BD  { background: #e2f5e2; color: #1a7a1a; }
-  .type-NA  { background: #eee;    color: var(--muted); }
+  .type-SD { background: #e0edff; color: #0055aa; }
+  .type-DD { background: #ffe8cc; color: #a04000; }
+  .type-BD { background: #e2f5e2; color: #1a7a1a; }
+  .type-NA { background: #eee;    color: var(--muted); }
 
   /* ── SKELETON ── */
   .skeleton {
@@ -272,37 +361,28 @@
     100% { background-position: -200% 0; }
   }
 
-  /* ── ERROR ── */
-  .error-msg {
-    font-family: var(--mono);
-    font-size: 10px; color: var(--red);
-    text-align: center;
-    padding: 6px 12px;
-    background: #ffeaea; border: 1px solid #ffcccc; border-radius: 6px;
-    margin-bottom: 6px;
-    display: none;
-  }
-
-  .error-msg.visible { display: block; }
-
   /* ── LEGEND ── */
   .legend {
-    display: flex; flex-wrap: wrap; gap: 4px 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px 12px;
     justify-content: center;
-    font-family: var(--mono); font-size: 9px;
+    font-family: var(--mono);
+    font-size: 10px;
     color: var(--muted);
     background: var(--panel);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 6px 10px;
+    border-radius: 10px;
+    padding: 8px 12px;
+    flex-shrink: 0;
   }
 
-  .legend-item { display: flex; align-items: center; gap: 3px; }
-  .l-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .legend-item { display: flex; align-items: center; gap: 4px; }
+  .l-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
   .l-dot.sea { background: var(--green); }
   .l-dot.sda { background: #c47d00; }
   .l-dot.lsd { background: var(--red); }
-  .l-box { width: 14px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+  .l-box { width: 16px; height: 11px; border-radius: 3px; flex-shrink: 0; }
   .l-box.sd { background: #e0edff; }
   .l-box.dd { background: #ffe8cc; }
   .l-box.bd { background: #e2f5e2; }
@@ -310,6 +390,7 @@
 </head>
 <body>
 
+<!-- Header -->
 <header>
   <div class="header-left">
     <h1>BUS <span>TRACKER</span></h1>
@@ -318,69 +399,92 @@
   <button class="refresh-btn" id="refreshBtn" onclick="fetchAll()">⟳ REFRESH</button>
 </header>
 
+<!-- Countdown -->
 <div class="countdown-bar"><div class="countdown-fill" id="cdFill"></div></div>
 <div class="error-msg" id="errMsg"></div>
 
-<div class="panels" id="panelsGrid">
-  <!-- Home -->
-  <div class="panel panel-home" id="panel-home">
-    <div class="panel-header">
-      <div class="direction-icon">🏠</div>
-      <div class="panel-meta">
-        <div class="panel-title">Home</div>
-        <div class="stop-code">B20019</div>
-      </div>
-    </div>
-    <div class="bus-list" id="list-B20019"></div>
-  </div>
+<!-- Tab Bar -->
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn" id="tab-home" onclick="switchTab('home')">
+    <span class="tab-icon">🏠</span>
+    <span class="tab-name">Home</span>
+    <span class="tab-dist" id="dist-home"></span>
+  </button>
+  <button class="tab-btn" id="tab-jj" onclick="switchTab('jj')">
+    <span class="tab-icon">🏢</span>
+    <span class="tab-name">JJ Office</span>
+    <span class="tab-dist" id="dist-jj"></span>
+  </button>
+  <button class="tab-btn" id="tab-san" onclick="switchTab('san')">
+    <span class="tab-icon">🏗️</span>
+    <span class="tab-name">San Office</span>
+    <span class="tab-dist" id="dist-san"></span>
+  </button>
+</div>
 
-  <!-- JJ Office -->
-  <div class="panel panel-office" id="panel-jj">
-    <div class="panel-header">
-      <div class="direction-icon">🏢</div>
-      <div class="panel-meta">
-        <div class="panel-title">JJ Office</div>
-        <div class="stop-code">B18101</div>
-      </div>
+<!-- Tab Contents -->
+<div class="tab-content content-home" id="content-home">
+  <div class="content-header">
+    <span class="content-icon">🏠</span>
+    <div>
+      <div class="content-title">Home</div>
+      <div class="content-sub">STOP B20019</div>
     </div>
-    <div class="bus-list" id="list-B18101"></div>
   </div>
+  <div class="bus-list" id="list-B20019"></div>
+</div>
 
-  <!-- San Office -->
-  <div class="panel panel-san" id="panel-san">
-    <div class="panel-header">
-      <div class="direction-icon">🏗️</div>
-      <div class="panel-meta">
-        <div class="panel-title">San Office</div>
-        <div class="stop-code">B18131</div>
-      </div>
+<div class="tab-content content-office" id="content-jj">
+  <div class="content-header">
+    <span class="content-icon">🏢</span>
+    <div>
+      <div class="content-title">JJ Office</div>
+      <div class="content-sub">STOP B18101</div>
     </div>
-    <div class="bus-list" id="list-B18131"></div>
   </div>
+  <div class="bus-list" id="list-B18101"></div>
+</div>
+
+<div class="tab-content content-san" id="content-san">
+  <div class="content-header">
+    <span class="content-icon">🏗️</span>
+    <div>
+      <div class="content-title">San Office</div>
+      <div class="content-sub">STOP B18131</div>
+    </div>
+  </div>
+  <div class="bus-list" id="list-B18131"></div>
 </div>
 
 <!-- Legend -->
 <div class="legend">
-  <div class="legend-item"><div class="l-dot sea"></div>SEA Seats</div>
+  <div class="legend-item"><div class="l-dot sea"></div>SEA Seats Avail</div>
   <div class="legend-item"><div class="l-dot sda"></div>SDA Standing</div>
   <div class="legend-item"><div class="l-dot lsd"></div>LSD Limited</div>
-  <div class="legend-item"><div class="l-box sd"></div>SD Single</div>
-  <div class="legend-item"><div class="l-box dd"></div>DD Double</div>
+  <div class="legend-item"><div class="l-box sd"></div>SD Single Deck</div>
+  <div class="legend-item"><div class="l-box dd"></div>DD Double Deck</div>
   <div class="legend-item"><div class="l-box bd"></div>BD Bendy</div>
 </div>
 
 <script>
-  const STOPS            = ['B20019', 'B18101', 'B18131'];
+  // ── Config ───────────────────────────────────────────────
+  const STOPS = {
+    home: { code: 'B20019', ltaCode: '20019' },
+    jj:   { code: 'B18101', ltaCode: '18101' },
+    san:  { code: 'B18131', ltaCode: '18131' }
+  };
   const BUSES            = ['97', '97E', '197', '963'];
   const AUTO_REFRESH_SEC = 30;
+  const TAB_ACCENT       = { home: 'active-home', jj: 'active-office', san: 'active-san' };
 
   let countdownSecs  = AUTO_REFRESH_SEC;
   let countdownTimer = null;
+  let activeTab      = 'home'; // default before ordering
 
-  // 97E: Mon–Fri only, 07:30–08:30 and 18:00–19:00 SGT
+  // ── 97E peak hours ───────────────────────────────────────
   function is97EActive() {
-    const now = new Date();
-    const sgtMin = (now.getUTCHours() * 60 + now.getUTCMinutes() + 8 * 60) % (24 * 60);
+    const now    = new Date();
+    const sgtMin = (now.getUTCHours() * 60 + now.getUTCMinutes() + 480) % 1440;
     const sgtDow = (now.getUTCDay() + (now.getUTCHours() + 8 >= 24 ? 1 : 0)) % 7;
     if (sgtDow < 1 || sgtDow > 5) return false;
     return (sgtMin >= 450 && sgtMin <= 510) || (sgtMin >= 1080 && sgtMin <= 1140);
@@ -390,6 +494,7 @@
     return is97EActive() ? BUSES : BUSES.filter(b => b !== '97E');
   }
 
+  // ── Arrival helpers ──────────────────────────────────────
   function arrivalLabel(isoStr) {
     if (!isoStr || isoStr === '0001-01-01T00:00:00+08:00') return null;
     const diff = Math.round((new Date(isoStr) - Date.now()) / 60000);
@@ -403,13 +508,19 @@
   function typeClass(t) { return { SD:'SD', DD:'DD', BD:'BD' }[t] || 'NA'; }
   function typeLabel(t) { return { SD:'SD', DD:'DD', BD:'BD' }[t] || '–'; }
 
+  // ── Render ───────────────────────────────────────────────
   function renderSkeleton(stopCode) {
     const el = document.getElementById('list-' + stopCode);
+    if (!el) return;
     el.innerHTML = activeBuses().map(() => `
       <div class="bus-row">
-        <div class="bus-number"><div class="skeleton" style="width:28px;height:18px"></div></div>
+        <div class="bus-number"><div class="skeleton" style="width:38px;height:26px;border-radius:4px"></div></div>
         <div class="arrivals">
-          ${[1,2,3].map(() => `<div class="arrival-chip"><div class="skeleton" style="width:100%;height:14px;margin-bottom:3px"></div><div class="skeleton" style="width:100%;height:10px"></div></div>`).join('')}
+          ${[1,2,3].map(() => `
+            <div class="arrival-chip">
+              <div class="skeleton" style="width:80%;height:17px;margin-bottom:5px"></div>
+              <div class="skeleton" style="width:90%;height:12px"></div>
+            </div>`).join('')}
         </div>
       </div>`).join('');
   }
@@ -420,30 +531,38 @@
     el.innerHTML = activeBuses().map(busNo => {
       const svc = services.find(s => s.ServiceNo === busNo);
       let chips = '';
-
       if (!svc) {
-        chips = `<div class="arrival-chip">
-          <span class="arrival-time empty">–</span>
-          <div class="chip-meta"><span class="load-badge load-NA">–</span><span class="type-badge type-NA">–</span></div>
-        </div>`;
+        chips = [1,2,3].map(() => `
+          <div class="arrival-chip">
+            <span class="arrival-time empty">–</span>
+            <div class="chip-meta">
+              <span class="load-badge load-NA">–</span>
+              <span class="type-badge type-NA">–</span>
+            </div>
+          </div>`).join('');
       } else {
-        const t = svc.NextBus?.Type || svc.NextBus2?.Type || '';
+        const fallbackType = svc.NextBus?.Type || svc.NextBus2?.Type || '';
         chips = [svc.NextBus, svc.NextBus2, svc.NextBus3].map(b => {
           const lbl = arrivalLabel(b?.EstimatedArrival);
-          if (!lbl) return `<div class="arrival-chip">
-            <span class="arrival-time empty">–</span>
-            <div class="chip-meta"><span class="load-badge load-NA">–</span><span class="type-badge type-NA">–</span></div>
-          </div>`;
-          return `<div class="arrival-chip">
-            <span class="arrival-time ${lbl.cls}">${lbl.text}</span>
-            <div class="chip-meta">
-              <span class="load-badge load-${loadClass(b?.Load)}">${loadLabel(b?.Load)}</span>
-              <span class="type-badge type-${typeClass(b?.Type || t)}">${typeLabel(b?.Type || t)}</span>
-            </div>
-          </div>`;
+          const t   = b?.Type || fallbackType;
+          if (!lbl) return `
+            <div class="arrival-chip">
+              <span class="arrival-time empty">–</span>
+              <div class="chip-meta">
+                <span class="load-badge load-NA">–</span>
+                <span class="type-badge type-NA">–</span>
+              </div>
+            </div>`;
+          return `
+            <div class="arrival-chip">
+              <span class="arrival-time ${lbl.cls}">${lbl.text}</span>
+              <div class="chip-meta">
+                <span class="load-badge load-${loadClass(b?.Load)}">${loadLabel(b?.Load)}</span>
+                <span class="type-badge type-${typeClass(t)}">${typeLabel(t)}</span>
+              </div>
+            </div>`;
         }).join('');
       }
-
       return `<div class="bus-row">
         <div class="bus-number">${busNo}</div>
         <div class="arrivals">${chips}</div>
@@ -451,9 +570,10 @@
     }).join('');
   }
 
-  async function fetchStop(stopCode) {
-    const res = await fetch('/api/bus?stop=' + stopCode);
-    if (!res.ok) throw new Error(`HTTP ${res.status} for ${stopCode}`);
+  // ── Fetch ────────────────────────────────────────────────
+  async function fetchStop(key) {
+    const res = await fetch('/api/bus?stop=' + STOPS[key].code);
+    if (!res.ok) throw new Error(`HTTP ${res.status} for ${STOPS[key].code}`);
     return (await res.json()).Services || [];
   }
 
@@ -463,22 +583,25 @@
     btn.classList.add('loading');
     btn.textContent = '⟳ …';
     err.classList.remove('visible');
-    STOPS.forEach(renderSkeleton);
+    Object.values(STOPS).forEach(s => renderSkeleton(s.code));
     try {
-      const [s1, s2, s3] = await Promise.all(STOPS.map(fetchStop));
-      renderStop(STOPS[0], s1);
-      renderStop(STOPS[1], s2);
-      renderStop(STOPS[2], s3);
+      const keys = Object.keys(STOPS);
+      const results = await Promise.all(keys.map(fetchStop));
+      keys.forEach((k, i) => renderStop(STOPS[k].code, results[i]));
       document.getElementById('ts').textContent =
-        'Updated ' + new Date().toLocaleTimeString('en-SG', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        'Updated ' + new Date().toLocaleTimeString('en-SG',
+          { hour: '2-digit', minute: '2-digit', second: '2-digit' });
       resetCountdown();
     } catch (e) {
       err.textContent = '⚠ ' + e.message;
       err.classList.add('visible');
-      STOPS.forEach(s => {
-        const el = document.getElementById('list-' + s);
+      Object.values(STOPS).forEach(s => {
+        const el = document.getElementById('list-' + s.code);
         if (el) el.innerHTML = activeBuses().map(b =>
-          `<div class="bus-row"><div class="bus-number">${b}</div><div class="arrivals"><div class="arrival-chip"><span class="arrival-time empty">Err</span></div></div></div>`
+          `<div class="bus-row"><div class="bus-number">${b}</div>
+           <div class="arrivals">${[1,2,3].map(() =>
+             `<div class="arrival-chip"><span class="arrival-time empty">Err</span></div>`
+           ).join('')}</div></div>`
         ).join('');
       });
     } finally {
@@ -487,6 +610,21 @@
     }
   }
 
+  // ── Tab switching ────────────────────────────────────────
+  function switchTab(tabKey) {
+    activeTab = tabKey;
+    // Hide all content
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    // Remove active from all tab buttons
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.remove('active-home', 'active-office', 'active-san');
+    });
+    // Show selected
+    document.getElementById('content-' + tabKey).classList.add('active');
+    document.getElementById('tab-' + tabKey).classList.add(TAB_ACCENT[tabKey]);
+  }
+
+  // ── Countdown ────────────────────────────────────────────
   function resetCountdown() {
     clearInterval(countdownTimer);
     countdownSecs = AUTO_REFRESH_SEC;
@@ -499,73 +637,76 @@
   }
 
   function updateBar() {
-    document.getElementById('cdFill').style.width = (countdownSecs / AUTO_REFRESH_SEC * 100) + '%';
+    document.getElementById('cdFill').style.width =
+      (countdownSecs / AUTO_REFRESH_SEC * 100) + '%';
   }
 
-  // ── Panel ordering ────────────────────────────────────────
-  const STOP_CODES = { 'B20019': '20019', 'B18101': '18101', 'B18131': '18131' };
-  const PANEL_IDS  = { 'B20019': 'panel-home', 'B18101': 'panel-jj', 'B18131': 'panel-san' };
-
+  // ── Panel ordering ───────────────────────────────────────
   function haversine(lat1, lon1, lat2, lon2) {
     const R = 6371000, r = d => d * Math.PI / 180;
     const dLat = r(lat2-lat1), dLon = r(lon2-lon1);
-    const a = Math.sin(dLat/2)**2 + Math.cos(r(lat1)) * Math.cos(r(lat2)) * Math.sin(dLon/2)**2;
+    const a = Math.sin(dLat/2)**2 + Math.cos(r(lat1))*Math.cos(r(lat2))*Math.sin(dLon/2)**2;
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
 
   async function fetchStopCoord(key) {
-    const res = await fetch('/api/stops?code=' + STOP_CODES[key]);
-    if (!res.ok) return null;
-    const d = await res.json();
-    return { lat: d.Latitude, lng: d.Longitude };
+    try {
+      const res = await fetch('/api/stops?code=' + STOPS[key].ltaCode);
+      if (!res.ok) return null;
+      const d = await res.json();
+      return { lat: d.Latitude, lng: d.Longitude };
+    } catch { return null; }
   }
 
-  function orderPanelsByDistance(userLat, userLng, stopCoords) {
-    const grid = document.getElementById('panelsGrid');
-    Object.keys(stopCoords)
-      .map(key => ({ key, dist: haversine(userLat, userLng, stopCoords[key].lat, stopCoords[key].lng) }))
-      .sort((a, b) => a.dist - b.dist)
-      .forEach(({ key, dist }) => {
-        const panel = document.getElementById(PANEL_IDS[key]);
-        if (!panel) return;
-        let distEl = panel.querySelector('.stop-dist');
-        if (!distEl) {
-          distEl = document.createElement('div');
-          distEl.className = 'stop-dist';
-          panel.querySelector('.panel-meta').appendChild(distEl);
-        }
-        const m = Math.round(dist);
-        distEl.textContent = m < 1000 ? `${m}m` : `${(dist/1000).toFixed(1)}km`;
-        grid.appendChild(panel);
-      });
+  function reorderTabs(orderedKeys) {
+    const bar = document.getElementById('tabBar');
+    orderedKeys.forEach(k => bar.appendChild(document.getElementById('tab-' + k)));
+    // Set default active tab to first (nearest/most relevant)
+    switchTab(orderedKeys[0]);
   }
 
-  function orderPanelsByTime() {
+  function orderByTime() {
     const sgtHour = (new Date().getUTCHours() + 8) % 24;
-    const grid = document.getElementById('panelsGrid');
-    const home = document.getElementById('panel-home');
-    const jj   = document.getElementById('panel-jj');
-    const san  = document.getElementById('panel-san');
-    if (sgtHour < 14) {
-      grid.appendChild(home); grid.appendChild(jj); grid.appendChild(san);
-    } else {
-      grid.appendChild(jj); grid.appendChild(san); grid.appendChild(home);
-    }
+    const order = sgtHour < 14
+      ? ['home', 'jj', 'san']
+      : ['jj', 'san', 'home'];
+    reorderTabs(order);
   }
 
   async function initPanelOrder() {
-    if (!navigator.geolocation) { orderPanelsByTime(); return; }
-    const keys = Object.keys(STOP_CODES);
+    if (!navigator.geolocation) { orderByTime(); return; }
+    const keys   = Object.keys(STOPS);
     const coords = await Promise.all(keys.map(fetchStopCoord));
     const stopCoords = {};
     keys.forEach((k, i) => { if (coords[i]) stopCoords[k] = coords[i]; });
-    if (Object.keys(stopCoords).length < 3) { orderPanelsByTime(); return; }
+    if (Object.keys(stopCoords).length < 3) { orderByTime(); return; }
+
     navigator.geolocation.getCurrentPosition(
-      pos => orderPanelsByDistance(pos.coords.latitude, pos.coords.longitude, stopCoords),
-      ()  => orderPanelsByTime()
+      pos => {
+        const { latitude: uLat, longitude: uLng } = pos.coords;
+        const sorted = keys
+          .map(k => ({
+            key: k,
+            dist: haversine(uLat, uLng, stopCoords[k].lat, stopCoords[k].lng)
+          }))
+          .sort((a, b) => a.dist - b.dist);
+
+        // Update distance labels on tabs
+        sorted.forEach(({ key, dist }) => {
+          const m = Math.round(dist);
+          document.getElementById('dist-' + key).textContent =
+            m < 1000 ? `${m}m` : `${(dist/1000).toFixed(1)}km`;
+        });
+
+        reorderTabs(sorted.map(s => s.key));
+      },
+      () => orderByTime()
     );
   }
 
+  // ── Init ─────────────────────────────────────────────────
+  // Set a default tab before ordering resolves
+  switchTab('home');
   initPanelOrder();
   fetchAll();
 </script>
