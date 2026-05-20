@@ -479,15 +479,19 @@
   let cachedServices = {};
 
   // ── 97E per-stop peak rules ──────────────────────────────
-  // AM (07:00–08:30): outbound Tengah→City — B17149 (Home) & B20019 (CTPS)
-  // PM (18:00–19:10): inbound City→Tengah  — B18101 (JJ) & B18131 (San)
+  // AM (07:45–08:40 SGT): Jurong East → Marina Centre
+  //   First bus departs Jurong East 07:36, reaches AYE stops ~07:50
+  //   Last bus departs 08:24, clears stops ~08:35
+  //   Stops served: B20019 (CTPS) then B17149 (Home)
+  // PM (18:00–19:00 SGT): Marina Centre → Jurong East
+  //   Passes all 4 stops in this order: B17149, B20019, B18101, B18131
   function is97EActiveForStop(stopCode) {
     const now    = new Date();
     const sgtMin = (now.getUTCHours() * 60 + now.getUTCMinutes() + 480) % 1440;
     const sgtDow = (now.getUTCDay() + (now.getUTCHours() + 8 >= 24 ? 1 : 0)) % 7;
     if (sgtDow < 1 || sgtDow > 5) return false;
-    const am = sgtMin >= 420  && sgtMin <= 510;
-    const pm = sgtMin >= 1080 && sgtMin <= 1150;
+    const am = sgtMin >= 465 && sgtMin <= 520;  // 07:45–08:40
+    const pm = sgtMin >= 1080 && sgtMin <= 1140; // 18:00–19:00
     if (stopCode === 'B17149' || stopCode === 'B20019') return am || pm;
     if (stopCode === 'B18101' || stopCode === 'B18131') return pm;
     return false;
